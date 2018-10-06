@@ -2,8 +2,8 @@ function buildMetadata(sample) {
 
   // @TODO: Complete the following function that builds the metadata panel
 
-  // Use `d3.json` to fetch the metadata for a sample
-  var url = `/samples/${sample}`;
+  // Use `d3.json` to fetch the metadata for a sample /metadata/<sample>
+  var url = `/metadata/${sample}`;
   d3.json(url).then(function(sample) {
 
     // Use d3 to select the panel with id of `#sample-metadata`
@@ -16,20 +16,21 @@ function buildMetadata(sample) {
         var row = sample_metadata.append("p");
         row.text(`${key}: ${value} \n`);
       });
-
       // Hint: Inside the loop, you will need to use d3 to append new
       // tags for each key-value in the metadata.
     }  );
 }
-//================================================================
+//==========================================================================================================
 
 function buildCharts(sample) {
 
   // @TODO: Use `d3.json` to fetch the sample data for the plots
-  //var url = `/samples/${sample}`;
-  // piechart
-  d3.json(url).then(function(sample){
-    var plot_data = d3.select("#selDataset");
+  var url = `/samples/${sample}`;
+
+  // Piechart
+
+  d3.json(url).then(function(data){
+    // var plot_data = d3.select("#selDataset");
 
     var labels = [];
     var values = [];
@@ -37,13 +38,13 @@ function buildCharts(sample) {
     
     for(i=0; i<10; i++) {
 
-      var label = plot_data.otu_ids[i];
+      var label = data.otu_ids[i];
       labels.push(label);
 
-      var value = plot_data.sample_values[i];
+      var value = data.sample_values[i];
       values.push(value);
 
-      var hover = plot_data[label - 1];
+      var hover = data[label - 1];
       hovers.push(hover);
       
     };
@@ -62,9 +63,9 @@ function buildCharts(sample) {
     var layout = {
 
       margin: {
-        l: 10,
-        r: 10, 
-        b: 10, 
+        l: 20,
+        r: 50, 
+        b: 150, 
         pad: 4
       },
 
@@ -74,41 +75,46 @@ function buildCharts(sample) {
 
   });
 
-//bubbleChart
-//var url = `/samples/${sample}`;
-//   Plotly.d3.json(url).then(function(newSample){
-//     var plot_data = d3.select("#selDataset");
+  //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+//BubbleChart
+
+d3.json(url).then(function(data){
   
-   
-//     var otuIDs = response[0].otu_ids;
-//     var samplevalues = response[1].sample_values
-//     var otuDescriptions = [];
-//     for(i=0; i<otuIDs.length; i++) {
-//       otuDescriptions.push(response[2][otuIDs[i] - 1]);
-//     };
+    var otuIDs = data.otu_ids;
+    var samplevalues = data.sample_values;
+    var otuDescriptions = [];
+    for(i=0; i<otuIDs.length; i++) {
+      otuDescriptions.push(data[otuIDs[i] - 1]);
+    };
 
-// var trace = {
-//   x: otuIDs,
-//   y: samplevalues,
-//   mode: 'markers',
-//   type: 'scatter',
-//   marker: {
-//     size: sample_values,
-//     color: otuIDs, 
-//     colorscale: "Rainbow"
+    var trace = {
+      x: [otuIDs],
+      y: [samplevalues],
+      mode: 'markers',
+      type: 'scatter',
+      marker: {
+        size: sample_values,
+        color: otuIDs, 
+        colorscale: "Rainbow"
+        
+      },
+      text: otuDescriptions,
     
-//   },
- 
-//   text: otuDescription,
-// };
+    };
 
-// var data = [trace]
+    var data = [trace];
 
-// Plotly.newPlot('bubble', data);
 
-//   }
-// }
-//---------------------------------------------------------------------------------------------------------------------
+    Plotly.newPlot('bubble', data);
+
+    });
+
+//===================================================================================================================
+
+}
+
+//====================================================================================================================
 
 function init() {
   // Grab a reference to the dropdown select element
@@ -129,6 +135,16 @@ function init() {
     buildMetadata(firstSample);
   });
 }
+
+function optionChanged(newSample) {
+  // Fetch new data each time a new sample is selected
+  buildCharts(newSample);
+  buildMetadata(newSample);
+}
+
+// Initialize the dashboard
+init();
+
 
 function optionChanged(newSample) {
   // Fetch new data each time a new sample is selected
